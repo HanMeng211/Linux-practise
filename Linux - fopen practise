@@ -1,0 +1,22 @@
+   #include<stdio.h>
+   #include<string.h>
+   int main()
+   {
+       FILE* fp = fopen("./test.txt","w+");
+       if(fp == NULL)
+       {
+           perror("fopen\n");
+           return 0;
+      }
+      printf("fopen success\n");
+      char buf[1024] = {0};
+      strcpy(buf,"linux is so easy");
+      size_t fwrite_size = fwrite(buf,1,16,fp);
+      printf("buf:%s fwrite_size:%lu\n",buf,fwrite_size);
+  
+      fseek(fp,0,SEEK_SET);
+      memset(buf,'\0',sizeof(buf));
+      size_t fread_size = fread(buf,1,16,fp);
+      printf("buf:%s fread_size:%lu\n",buf,fread_size);
+      return 0;
+  }                                                                                                                                                   
