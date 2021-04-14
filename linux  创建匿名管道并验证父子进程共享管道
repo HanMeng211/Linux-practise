@@ -1,0 +1,26 @@
+  1 #include<stdio.h>
+  2 #include<unistd.h>
+  3 
+  4 int main()
+  5 {
+  6     int fd[2];
+  7     int ret = pipe(fd);
+  8     if(ret < 0)
+  9     {
+ 10         perror("pipe");
+ 11         return 0;
+ 12     }
+ 13     printf("fd[0]:%d\n",fd[0]);
+ 14     printf("fd[1]:%d\n",fd[1]);
+ 15     pid_t pid = fork();
+ 16     if(pid < 0)
+ 17     {
+ 18         perror("fork\n");
+ 19     }
+ 20 
+ 21     while(1)
+ 22     {
+ 23         sleep(1);
+ 24     }
+ 25     return 0;
+ 26 }         
