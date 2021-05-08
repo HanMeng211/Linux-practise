@@ -1,4 +1,4 @@
-  //主线程和工作线程都不推出
+  //主线程和工作线程都不退出
    
    1 #include<stdio.h>                                                                                                                       
     2 #include<pthread.h>                                                                                                                     
