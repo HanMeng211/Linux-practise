@@ -1,0 +1,31 @@
+  //主线程和工作线程都不推出
+   
+   1 #include<stdio.h>                                                                                                                       
+    2 #include<pthread.h>                                                                                                                     
+    3 #include<unistd.h>                                                                                                                      
+    4                                                                                                                                         
+    5 void* MyThreadStart(void* arg)                                                                                                          
+    6 {                                                                                                                                       
+    7     while(1)                                                                                                                            
+    8     {                                                                                                                                   
+    9         printf("i am MyThreadStart\n");                                                                                                 
+   10         sleep(1);                                                                                                                       
+   11     }                                                                                                                                   
+   12 }                                                                                                                                       
+   13 int main()                                                                                                                              
+   14 {                                                                                                                                       
+   15     pthread_t thread;                                                                                                                   
+   16     int ret = pthread_create(&thread,NULL,MyThreadStart,NULL);                                                                          
+   17     if(ret < 0)                                                                                                                         
+   18     {                                                                                                                                   
+   19         perror("pthread_creat");                                                                                                        
+   20         return 0;                                                                                                                       
+   21     }                                                                                                                                   
+   22                                                                                                                                         
+   23     while(1)                                                                                                                            
+   24     {                                                                                                                                   
+   25         printf("i am main thread\n");                                                                                                          
+   26         sleep(1);                                                                                                                                 
+   27     }                                                                                                                             
+   28     return 0;                                                                                                                     
+   29 }  
