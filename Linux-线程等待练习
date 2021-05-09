@@ -1,0 +1,52 @@
+ //调用pthread_join函数的执行流等待到了退出的线程
+  1 #include<stdio.h>                                                                                                                       
+  2 #include<pthread.h>       
+  3 #include<unistd.h>
+  4                                                                           
+  5 struct ThreadId    
+  6 {        
+  7     int thread_id;                  
+  8 };                   
+  9          
+ 10 void* MyThreadStart(void* arg)
+ 11 {
+ 12     struct ThreadId* ti = (struct ThreadId*)arg;
+ 13               
+ 14     printf("i am MyThreadStart,i = %d\n",ti->thread_id);
+ 15     sleep(1);
+ 16     //释放                           
+ 17     delete ti;
+ 18     return NULL;
+ 19 }
+ 20 int main()  
+ 21 {    
+ 22     pthread_t thread[4];             
+ 23     for(int i = 0;i < 4;i++)
+ 24     {
+ 25         struct ThreadId* id = new ThreadId();
+ 26         id->thread_id = i;
+ 27 
+ 28         int ret = pthread_create(&thread[i],NULL,MyThreadStart,(void*)id);
+ 29         if(ret < 0)
+ 30         {
+ 31             perror("pthread_creat");
+ 32             return 0;
+ 33         }
+ 34     }                         
+ 35  
+ 36                                                 
+ 37     //线程等待
+ 38     for(int i = 0;i < 4;++i)                            
+ 39     {        
+ 40         pthread_join(thread[i],NULL);
+ 41     }         
+ 42                 
+ 43  
+ 44     while(1)
+ 45     {
+ 46         printf("i am main thread\n");
+ 47         sleep(1);           
+ 48     }
+ 49                                              
+ 50     return 0;             
+ 51 }                                                                             
