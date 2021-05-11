@@ -1,0 +1,49 @@
+    1 #include<stdio.h>                                                                                                                     
+    2 #include<unistd.h>
+    3 #include<pthread.h>
+    4 
+    5 int get_ticket = 600;
+    6 
+    7 void* Mythreadstart(void* arg)
+    8 {
+    9     while(1)
+   10     {
+   11         //当票大于0，抢到一张票，总数减一
+   12         if(get_ticket > 0)
+   13         {
+   14             printf("i have %d,i am %p\n",get_ticket,pthread_self());
+   15             get_ticket--;
+   16         }
+   17         //票数小于等于0，结束
+   18         else
+   19         {
+   20             pthread_exit(NULL);
+   21         }
+   22     }
+   23     return NULL;
+   24 }
+   25 
+   26 int main()
+   27 {
+   28     pthread_t tid[2];
+   29     //创建两个工作线程        
+   30     for(int i = 0;i < 2;++i)
+   31     {       
+   32         int ret = pthread_create(&tid[i],NULL,Mythreadstart,NULL);
+   33         if(ret < 0)                      
+   34         {                 
+   35             perror("pthread_create");
+   36             return 0;                                               
+   37         }                
+   38     }    
+   39                              
+   40             
+   41     //线程等待
+   42     for(int i = 0;i < 2;++i)   
+   43     {    
+   44         pthread_join(tid[i],NULL);
+   45     }           
+   46  
+   47     printf("pthread_join is end...\n");
+   48     return 0;
+   49 }                       
