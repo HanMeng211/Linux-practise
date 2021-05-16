@@ -1,0 +1,104 @@
+    1 #include<stdio.h>
+    2 #include<pthread.h>
+    3 #include<unistd.h>
+    4 
+    5 #define THREAD_NUM 2
+    6 int g_bowl = 1;
+    7 
+    8 pthread_mutex_t My_lock;
+    9 //eat的条件变量
+   10 pthread_cond_t g_cond;
+   11 //make的条件变量                                                                                                           
+   12 pthread_cond_t g_make_cond;
+   13                           
+   14 //Eat                                           
+   15 void* MythreadA(void* arg)
+   16 {                                                          
+   17     while(1)                         
+   18     {                                 
+   19         pthread_mutex_lock(&My_lock);  
+   20                                        
+   21         //判断是否能吃面 
+   22         while(g_bowl < 1)                 
+   23         {                                       
+   24             //等待                              
+   25             pthread_cond_wait(&g_cond,&My_lock);           
+   26         }                                                  
+   27         printf("i eat %d,i am %p\n",g_bowl,pthread_self());
+   28 
+   29         g_bowl--;
+   30 
+   31         pthread_mutex_unlock(&My_lock);
+   32         //通知做面
+   33         pthread_cond_signal(&g_make_cond);
+   34 
+   35     }
+   36     return NULL;
+   37 }
+   38 
+   39 //Make
+   40 void* MythreadB(void* arg)
+   41 {
+   42     while(1)
+   43     {
+   44         pthread_mutex_lock(&My_lock);
+   45 
+   46         //判断是否需要做面
+   47         while(g_bowl > 0)                                                                                                  
+   48         {
+   49             //等待
+   50             pthread_cond_wait(&g_make_cond,&My_lock);
+   51         }
+   52 
+   53         g_bowl++;
+   54         printf("i make %d,i am %p\n",g_bowl,pthread_self());
+   55 
+   56 
+   57         pthread_mutex_unlock(&My_lock);
+   58         //通知吃面                                                                                                         
+   59         pthread_cond_signal(&g_cond);
+   60 
+   61     }
+   62     return NULL;
+   63 }
+   64 
+   65 int main()
+   66 {
+   67     //锁初始化
+   68     pthread_mutex_init(&My_lock,NULL);
+   69     //初始化条件变量
+   70     pthread_cond_init(&g_cond,NULL);
+   71     pthread_cond_init(&g_make_cond,NULL);
+   72 
+   73     pthread_t tid_Eat[THREAD_NUM],tid_Make[THREAD_NUM];
+   74 
+   75     //创建线程
+   76     for(int i = 0;i < THREAD_NUM;i++)
+   77     {
+   78         int ret = pthread_create(&tid_Eat[i],NULL,MythreadA,NULL);
+   79         if(ret < 0)
+   80         {
+   81             perror("pthread_create");
+   82             return 0;
+   83         }
+   84         pthread_create(&tid_Make[i],NULL,MythreadB,NULL);
+   85         if(ret < 0)
+   86         {
+   87             perror("pthread_create");
+   88             return 0;
+   89         }
+   90 
+   91     }
+   92 
+   93     //线程等待
+   94     for(int i = 0;i < THREAD_NUM;i++)
+   95     {
+   96         pthread_join(tid_Eat[i],NULL);
+   97         pthread_join(tid_Make[i],NULL);                                                                                    
+   98     }
+   99 
+  100     pthread_mutex_destroy(&My_lock);
+  101     pthread_cond_destroy(&g_cond);
+  102     pthread_cond_destroy(&g_make_cond);
+  103     return 0;
+  104 }                            
