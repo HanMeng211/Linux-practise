@@ -1,0 +1,61 @@
+   //加锁之后不解锁可能会造成死锁
+   
+   1 #include<stdio.h>
+    2 #include<unistd.h>
+    3 #include<pthread.h>
+    4 
+    5 pthread_mutex_t My_lock;
+    6 
+    7 int get_ticket = 600;
+    8 
+    9 void* Mythreadstart(void* arg)
+   10 {
+   11     while(1)
+   12     {
+   13         //加锁
+   14         pthread_mutex_lock(&My_lock);
+   15 
+   16         //当票大于0，抢到一张票，总数减一
+   17         if(get_ticket > 0)
+   18         {                                                                                                                  
+   19             printf("i have %d,i am %p\n",get_ticket,pthread_self());
+   20             get_ticket--;
+   21         }
+   22         //票数小于等于0，结束
+   23         else
+   24         {
+   25             pthread_exit(NULL);
+   26         }
+   27     }
+   28     return NULL;
+   29 }
+   30 
+   31 int main()
+   32 {
+   33     //初始化互斥锁
+   34     pthread_mutex_init(&My_lock,NULL);
+   35     pthread_t tid[2];
+   36     //创建两个工作线程
+   37     for(int i = 0;i < 2;++i)
+   38     {
+   39         int ret = pthread_create(&tid[i],NULL,Mythreadstart,NULL);
+   40         if(ret < 0)
+   41         {
+   42             perror("pthread_create");
+   43             return 0;
+   44         }
+   45     }
+   46 
+   47                                                                                                                            
+   48     //线程等待
+   49     for(int i = 0;i < 2;++i)
+   50     {
+   51         pthread_join(tid[i],NULL);
+   52     }
+   53 
+   54     //释放互斥锁资源
+   55     pthread_mutex_destroy(&My_lock);
+   56 
+   57     printf("pthread_join is end...\n");
+   58     return 0;
+   59 }                           
