@@ -1,0 +1,115 @@
+//客户端
+
+  1 #include<stdio.h>                                                                                                            
+  2 #include<string.h>
+  3 #include<sys/socket.h>                                  
+  4 #include<unistd.h>
+  5 #include<netinet/in.h>
+  6 #include<arpa/inet.h>    
+  7                  
+  8 int main()
+  9 {
+ 10     //创建套接字
+ 11     int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+ 12     if(sockfd < 0)
+ 13     {            
+ 14         perror("socket");                
+ 15         return 0;                    
+ 16     }                                  
+ 17                                                          
+ 18                                           
+ 19     while(1)      
+ 20     {                                                                                                       
+ 21         sleep(1);
+ 22         char buf[1024] = {"i am client"};
+ 23         struct sockaddr_in dest_addr;
+ 24         dest_addr.sin_family = AF_INET;
+ 25         dest_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+ 26         dest_addr.sin_port = htons(18989);
+ 27         //发送信息
+ 28         ssize_t send_size = sendto(sockfd,buf,strlen(buf),0,(struct sockaddr*)&dest_addr,sizeof(dest_addr));
+ 29         if(send_size < 0)
+ 30         {
+ 31             perror("sendto");
+ 32             continue;
+ 33         }
+ 34 
+ 35 
+ 36         //接收信息
+ 37         memset(buf,'\0',sizeof(buf));
+ 38         ssize_t recv_size = recvfrom(sockfd,buf,sizeof(buf)-1,0,NULL,NULL);
+ 39         if(recv_size < 0)
+ 40         {
+ 41             perror("recvfrom");
+ 42             continue;
+ 43         }
+ 44         printf("%s\n",buf);
+ 45     }
+ 46     return 0;
+ 47 }
+
+
+
+
+
+//服务端
+
+  1 #include<stdio.h>                                                                                                            
+  2 #include<string.h>       
+  3 #include<sys/socket.h>
+  4 #include<unistd.h>
+  5 #include<netinet/in.h>
+  6 #include<arpa/inet.h>
+  7                             
+  8 int main()                    
+  9 {                                
+ 10     //创建套接字                                
+ 11     int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);        
+ 12     if(sockfd < 0)
+ 13     {
+ 14         perror("socket");
+ 15         return 0;
+ 16     }
+ 17 
+ 18     //绑定端口
+ 19     struct sockaddr_in addr;
+ 20     addr.sin_family = AF_INET;
+ 21     addr.sin_port = htons(18989);
+ 22     addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+ 23     int ret = bind(sockfd,(struct sockaddr*)&addr,sizeof(addr));
+ 24     if(ret < 0)                                    
+ 25     {                                                                                                  
+ 26         perror("bind");
+ 27         return 0;
+ 28     }
+ 29 
+ 30 
+ 31     while(1)
+ 32     {
+ 33         //接收信息
+ 34         char buf[1024] = {0};
+ 35         struct sockaddr_in host_addr;
+ 36         socklen_t host_addrlen = sizeof(host_addr);
+ 37         ssize_t recv = recvfrom(sockfd,buf,sizeof(buf)-1,0,(struct sockaddr*)&host_addr,&host_addrlen);
+ 38         if(recv < 0)
+ 39         {
+ 40             perror("recvfrom");
+ 41             continue;
+ 42         }
+ 43 
+ 44         //打印接收到的内容，并打印客户端的IP和端口号
+ 45         printf("i am service,i recv %s,from client IP:%s,port:%d\n",buf,inet_ntoa(host_addr.sin_addr),ntohs(host_addr.sin_por    t));
+ 46                                                                                                                              
+ 47         //发送信息
+ 48         memset(buf,'\0',sizeof(buf));
+ 49         sprintf(buf,"hello!client IP is:%s,port is:%d,i am service!",inet_ntoa(host_addr.sin_addr),ntohs(host_addr.sin_port))    ;
+ 50         ssize_t send_size = sendto(sockfd,buf,strlen(buf),0,(struct sockaddr*)&host_addr,sizeof(host_addr));
+ 51         if(send_size < 0)
+ 52         {
+ 53             perror("sendto");
+ 54             continue;
+ 55         }
+ 56     }
+ 57     return 0;
+ 58 }
+ 59                                          
