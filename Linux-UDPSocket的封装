@@ -1,0 +1,96 @@
+    1 #include<iostream>                                                                                                         
+    2 #include<string.h>
+    3 #include<unistd.h>
+    4 #include<sys/socket.h>
+    5 #include<arpa/inet.h> 
+    6 #include<netinet/in.h>
+    7                       
+    8 
+    9 class udp_socket
+   10 {               
+   11 public:
+   12     udp_socket():_sockfd(-1)
+   13     {}                      
+   14 public:
+   15     //创建套接字
+   16     bool Socket()
+   17     {            
+   18         _sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+   19         if(_sockfd < 0)                                  
+   20         {                                                  
+   21             perror("socket");                             
+   22             return false;                    
+   23         }                                        
+   24         return true;
+   25     }               
+   26 public:
+   27     //绑定端口
+   28     bool Bind(const std::string& ip,uint16_t port)
+   29     {
+   30         struct sockaddr_in addr;
+   31         addr.sin_family = AF_INET;
+   32         addr.sin_port = htons(port);
+   33         //string类中提供c_str()成员函数，返回char*的字符串
+   34         addr.sin_addr.s_addr = inet_addr(ip.c_str());
+   35         int ret = bind(_sockfd,(struct sockaddr*)&addr,sizeof(addr));
+   36         if(ret < 0)
+   37         {
+   38             perror("bind");
+   39             return 0;
+   40         }
+   41         return true;
+   42     }
+   43 public:
+   44     //接收
+   45     bool Recvfrom(std::string& buf,std::string* ip = NULL,uint16_t* port = NULL)
+   46     {
+   47         //接收缓冲区                                                                                                       
+   48         char tem[1024] = {0};
+   49         //对端地址信息
+   50         struct sockaddr_in host_addr;
+   51         socklen_t host_addrlen = sizeof(host_addr);
+   52         ssize_t recv = recvfrom(_sockfd,tem,sizeof(tem)-1,0,(struct sockaddr*)&host_addr,&host_addrlen);
+   53         if(recv < 0)
+   54         {
+   55             perror("recvfrom");
+   56             return false;
+   57         }
+   58         //将数据从缓冲区取出
+   59         buf.assign(tem,recv);
+   60         //获取对端地址信息
+   61         if(port != NULL)
+   62         {
+   63             *port = htons(host_addr.sin_port);
+   64         }
+   65         if(ip != NULL)
+   66         {
+   67             *ip = inet_ntoa(host_addr.sin_addr);
+   68         }
+   69         return true;
+   70     }
+   71 public:
+   72     //发送
+   73     bool Send(const std::string& buff,const std::string& ip,const uint16_t& port)                                          
+   74     {
+   75         struct sockaddr_in addr;
+   76         addr.sin_family = AF_INET;
+   77         addr.sin_port = htons(port);
+   78         addr.sin_addr.s_addr = inet_addr(ip.c_str());
+   79         ssize_t send_size = sendto(_sockfd,buff.c_str(),buff.size(),0,(struct sockaddr*)&addr,sizeof(addr));
+   80         if(send_size < 0)
+   81         {
+   82             perror("sendto");
+   83             return false;
+   84         }
+   85         return true;
+   86     }
+   87 public:
+   88     void Close()
+   89     {
+   90         close(_sockfd);
+   91         _sockfd = -1;
+   92     }
+   93 
+   94 private:
+   95     int _sockfd;
+   96 };                                                                                                
