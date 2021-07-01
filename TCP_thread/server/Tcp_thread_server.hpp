@@ -1,3 +1,4 @@
+//.hpp 定义和声明在一起
 #pragma once
 #include<stdio.h>
 #include<string>
