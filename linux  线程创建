@@ -14,8 +14,8 @@
    12 }                                                                                                                                       
    13 int main()                                                                                                                              
    14 {                                                                                                                                       
-   15     pthread_t thread;                                                                                                                   
-   16     int ret = pthread_create(&thread,NULL,MyThreadStart,NULL);                                                                          
+   15     pthread_t thread;      
+   16     int ret = pthread_create(&thread,NULL,MyThreadStart,NULL);   //创建线程                                                                       
    17     if(ret < 0)                                                                                                                         
    18     {                                                                                                                                   
    19         perror("pthread_creat");                                                                                                        
